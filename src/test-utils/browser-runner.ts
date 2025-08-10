@@ -9,7 +9,7 @@ import type {
 import { VitestTestRunner } from 'vitest/runners'
 import { BrowserExecutor } from './browser-executor.js'
 
-export class BrowserTestRunner extends VitestTestRunner implements VitestRunner {
+export default class BrowserTestRunner extends VitestTestRunner implements VitestRunner {
   public config: VitestRunnerConfig
   private executor: BrowserExecutor
   private testResults = new Map<string, any>()
