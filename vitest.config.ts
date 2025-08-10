@@ -3,6 +3,10 @@ import { defineConfig } from 'vitest/config'
 import { createBrowserDevEnvironment } from './src/test-utils/browser-environment.js'
 
 export default defineConfig({
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+  },
   test: {
     // 커스텀 러너 지정
     runner: './src/test-utils/browser-runner.js',

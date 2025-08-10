@@ -5,15 +5,17 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest",
-    "test:browser": "vitest --config vitest.config.ts",
-    "test:browser:chrome": "BROWSER=chrome vitest --config vitest.config.ts",
-    "test:browser:firefox": "BROWSER=firefox vitest --config vitest.config.ts",
+    "dev": "vite dev --host",
+    "test:browser": "start-server-and-test dev http://localhost:5173 'xvfb-run vitest --config vitest.config.ts'",
+    "test:browser:chrome": "start-server-and-test dev http://localhost:5173 'BROWSER=chrome xvfb-run vitest --config vitest.config.ts'",
+    "test:browser:firefox": "start-server-and-test dev http://localhost:5173 'BROWSER=firefox xvfb-run vitest --config vitest.config.ts'",
     "test:watch": "vitest --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "start-server-and-test": "^2.0.4",
     "vitest": "4.0.0-beta.7",
     "vite": "7.1.1",
     "playwright": "^1.40.0",

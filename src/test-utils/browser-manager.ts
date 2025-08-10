@@ -42,7 +42,7 @@ class BrowserManagerSingleton {
     if (!browser) {
       const launcher = this.getLauncher(browserName)
       browser = await launcher.launch({
-        headless: process.env.CI === 'true',
+        headless: true,
         devtools: false,
       })
       this.browsers.set(browserName, browser)
