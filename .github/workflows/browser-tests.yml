@@ -15,20 +15,25 @@ jobs:
       - name: 체크아웃
         uses: actions/checkout@v4
 
+      - name: pnpm 설치
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+
       - name: Node.js 설정
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: 의존성 설치
-        run: npm ci
+        run: pnpm install
 
       - name: Playwright 브라우저 설치
-        run: npx playwright install ${{ matrix.browser }} --with-deps
+        run: pnpm exec playwright install ${{ matrix.browser }} --with-deps
 
       - name: 브라우저 테스트 실행
-        run: npm run test:browser
+        run: pnpm run test:browser
         env:
           CI: true
           BROWSER: ${{ matrix.browser }}
