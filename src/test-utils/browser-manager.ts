@@ -9,11 +9,10 @@ import {
 } from 'playwright'
 import type { HotPayload } from 'vite'
 
-// This singleton class will manage the browser instances and pages.
 class BrowserManagerSingleton {
   private browsers = new Map<string, Browser>()
   private contexts = new Map<string, BrowserContext>()
-  private pages = new Map<string, Page>() // A main page for each browser type
+  private pages = new Map<string, Page>()
 
   private getLauncher(browserName: string): BrowserType {
     if (browserName === 'chrome') return chromium
@@ -22,13 +21,14 @@ class BrowserManagerSingleton {
     throw new Error(`Unsupported browser: ${browserName}`)
   }
 
-  async getPage(browserName: string): Promise<Page> {
+  async getPage(browserName: string, viteServerUrl: string): Promise<Page> {
     if (this.pages.has(browserName)) {
       return this.pages.get(browserName)!
     }
 
     const context = await this.getContext(browserName);
     const page = await context.newPage()
+    await page.goto(viteServerUrl);
     this.pages.set(browserName, page)
     return page
   }
@@ -56,17 +56,15 @@ class BrowserManagerSingleton {
     return context;
   }
 
-  async sendMessage(browserName: string, payload: HotPayload) {
-    const page = await this.getPage(browserName)
-    // The vite HMR client listens for 'message' events on window.
+  async sendMessage(browserName: string, payload: HotPayload, viteServerUrl: string) {
+    const page = await this.getPage(browserName, viteServerUrl)
     await page.evaluate((p) => {
       window.dispatchEvent(new MessageEvent('message', { data: p }))
     }, payload)
   }
 
-  async invokeModule(browserName: string, payload: any): Promise<any> {
-    const page = await this.getPage(browserName)
-    // This logic is from BrowserExecutor, for the module runner to make RPC calls.
+  async invokeModule(browserName: string, payload: any, viteServerUrl: string): Promise<any> {
+    const page = await this.getPage(browserName, viteServerUrl)
     return await page.evaluate(
       async (p) => {
         const response = await fetch('/__test_invoke', {
@@ -95,16 +93,14 @@ class BrowserManagerSingleton {
 
 export const browserManagerSingleton = new BrowserManagerSingleton()
 
-// This is the class that BrowserCommunicationChannel expects to instantiate.
-// It will act as a proxy to the singleton, for a specific browser.
 export class BrowserManager {
-  constructor(private browserName: string) {}
+  constructor(private browserName: string, private viteServerUrl: string) {}
 
   sendMessage(payload: HotPayload) {
-    return browserManagerSingleton.sendMessage(this.browserName, payload)
+    return browserManagerSingleton.sendMessage(this.browserName, payload, this.viteServerUrl)
   }
 
   invokeModule(payload: any) {
-    return browserManagerSingleton.invokeModule(this.browserName, payload)
+    return browserManagerSingleton.invokeModule(this.browserName, payload, this.viteServerUrl)
   }
 }

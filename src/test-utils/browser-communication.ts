@@ -5,8 +5,8 @@ export class BrowserCommunicationChannel implements HotChannel {
   private browserManager: BrowserManager
   private listeners = new Map<string, Set<Function>>()
 
-  constructor(browserType: string) {
-    this.browserManager = new BrowserManager(browserType)
+  constructor(browserType: string, viteServerUrl: string) {
+    this.browserManager = new BrowserManager(browserType, viteServerUrl)
   }
 
   on(event: string, listener: Function): void {

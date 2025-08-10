@@ -8,7 +8,11 @@ export class BrowserExecutor {
   private initializedBrowsers: string[] = []
   private currentBrowser = 'chrome'
 
-  constructor(private config: any) {}
+  private viteServerUrl: string;
+
+  constructor(private config: any, viteServerUrl: string) {
+    this.viteServerUrl = viteServerUrl;
+  }
 
   async initialize() {
     const allBrowserConfigs = [
@@ -41,6 +45,7 @@ export class BrowserExecutor {
 
   private async setupModuleRunner(browserName: string, context: BrowserContext) {
     const page = await context.newPage()
+    await page.goto(this.viteServerUrl)
 
     const transport: ModuleRunnerTransport = {
       timeout: 30000,

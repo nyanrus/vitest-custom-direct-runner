@@ -7,7 +7,8 @@ export function createBrowserDevEnvironment(
   context: DevEnvironmentContext,
   options: { browser: 'chrome' | 'firefox' | 'webkit' }
 ) {
-  const communicationChannel = new BrowserCommunicationChannel(options.browser)
+  const origin = config.server.origin ?? `http://${config.server.host}:${config.server.port}`
+  const communicationChannel = new BrowserCommunicationChannel(options.browser, origin)
 
   const browserEnvironment = new DevEnvironment(name, config, {
     options: {

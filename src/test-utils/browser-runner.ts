@@ -17,7 +17,8 @@ export default class BrowserTestRunner extends VitestTestRunner implements Vites
   constructor(config: VitestRunnerConfig) {
     super(config)
     this.config = config
-    this.executor = new BrowserExecutor(config)
+    const origin = this.config.vite.server.origin ?? `http://${this.config.vite.server.host}:${this.config.vite.server.port}`
+    this.executor = new BrowserExecutor(config, origin)
   }
 
   async onBeforeCollect(paths: string[]) {
