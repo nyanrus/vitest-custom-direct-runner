@@ -8,6 +8,7 @@ import type {
 } from 'vitest/suite'
 import { VitestTestRunner } from 'vitest/runners'
 import { BrowserExecutor } from './browser-executor.js'
+import { sharedState } from './shared-state.js'
 
 export default class BrowserTestRunner extends VitestTestRunner implements VitestRunner {
   public config: VitestRunnerConfig
@@ -17,7 +18,10 @@ export default class BrowserTestRunner extends VitestTestRunner implements Vites
   constructor(config: VitestRunnerConfig) {
     super(config)
     this.config = config
-    const origin = this.config.vite.server.origin ?? `http://${this.config.vite.server.host}:${this.config.vite.server.port}`
+    const origin = sharedState.viteServerUrl
+    if (!origin) {
+      throw new Error('Vite server URL was not set in shared state. This is a bug in the runner setup.');
+    }
     this.executor = new BrowserExecutor(config, origin)
   }
 
