@@ -8,7 +8,8 @@ import type {
 } from 'vitest/suite'
 import { VitestTestRunner } from 'vitest/runners'
 import { BrowserExecutor } from './browser-executor.js'
-import { sharedState } from './shared-state.js'
+
+const VITE_SERVER_URL = 'http://localhost:5173'
 
 export default class BrowserTestRunner extends VitestTestRunner implements VitestRunner {
   public config: VitestRunnerConfig
@@ -18,17 +19,13 @@ export default class BrowserTestRunner extends VitestTestRunner implements Vites
   constructor(config: VitestRunnerConfig) {
     super(config)
     this.config = config
-    this.executor = new BrowserExecutor(config)
+    this.executor = new BrowserExecutor(config, VITE_SERVER_URL)
   }
 
   async onBeforeCollect(paths: string[]) {
     console.log(`Starting test collection for ${paths.length} files`)
-    const origin = sharedState.viteServerUrl
-    if (!origin) {
-      throw new Error('Vite server URL was not set in shared state by the time of collection. This is a bug in the runner setup.');
-    }
     try {
-      await this.executor.initialize(origin)
+      await this.executor.initialize()
     } catch (error) {
       console.error('Failed to initialize browser executor:', error)
       throw error
@@ -86,7 +83,7 @@ export default class BrowserTestRunner extends VitestTestRunner implements Vites
     try {
       await this.executor.cleanup()
     } catch (error) {
-      console.warn('Cleanup warning:', error.message)
+      console.warn('Cleanup warning:', (error as Error).message)
     }
   }
 

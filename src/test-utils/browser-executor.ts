@@ -7,13 +7,13 @@ export class BrowserExecutor {
   private runners = new Map<string, ModuleRunner>()
   private initializedBrowsers: string[] = []
   private currentBrowser = 'chrome'
+  private viteServerUrl: string;
 
-  private viteServerUrl: string | undefined;
-
-  constructor(private config: any) {}
-
-  async initialize(viteServerUrl: string) {
+  constructor(private config: any, viteServerUrl: string) {
     this.viteServerUrl = viteServerUrl;
+  }
+
+  async initialize() {
     const allBrowserConfigs = [
       { name: 'chrome' },
       { name: 'firefox' }
@@ -50,13 +50,10 @@ export class BrowserExecutor {
       timeout: 30000,
 
       async connect(handlers) {
-        // WebSocket 또는 다른 통신 방식 설정
         await page.evaluate(() => {
-          // 브라우저 측 통신 설정
           window.__testCommunication = {
             handlers: {},
             send: (data) => {
-              // This needs to call back to the node process.
               window.__vite_rpc_send(data)
             }
           }
@@ -73,7 +70,6 @@ export class BrowserExecutor {
 
       async invoke(data) {
         return await page.evaluate(async (payload) => {
-          // 브라우저에서 모듈 실행 요청 처리
           try {
             const response = await fetch('/__test_invoke', {
               method: 'POST',
@@ -95,7 +91,6 @@ export class BrowserExecutor {
 
     this.runners.set(browserName, runner)
 
-    // 테스트 환경 기본 설정
     await page.addInitScript(() => {
       window.__testContext = {
         browserName: browserName,
@@ -161,7 +156,7 @@ export class BrowserExecutor {
     const context = await browserManagerSingleton.getContext(this.currentBrowser)
     if (!context) throw new Error('No active browser context')
 
-    const page = await context.newPage() // Create a new page for this action
+    const page = await context.newPage()
     try {
       if (selector) {
         const element = await page.locator(selector)

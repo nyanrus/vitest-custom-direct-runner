@@ -1,6 +1,7 @@
 import { DevEnvironment, type DevEnvironmentContext, type ResolvedConfig } from 'vite'
 import { BrowserCommunicationChannel } from './browser-communication.js'
-import { sharedState } from './shared-state.js'
+
+const VITE_SERVER_URL = 'http://localhost:5173'
 
 export function createBrowserDevEnvironment(
   name: string,
@@ -8,9 +9,7 @@ export function createBrowserDevEnvironment(
   context: DevEnvironmentContext,
   options: { browser: 'chrome' | 'firefox' | 'webkit' }
 ) {
-  const origin = config.server.origin ?? `http://${config.server.host}:${config.server.port}`
-  sharedState.viteServerUrl = origin
-  const communicationChannel = new BrowserCommunicationChannel(options.browser, origin)
+  const communicationChannel = new BrowserCommunicationChannel(options.browser, VITE_SERVER_URL)
 
   const browserEnvironment = new DevEnvironment(name, config, {
     options: {
