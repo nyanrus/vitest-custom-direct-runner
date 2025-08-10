@@ -1,63 +1,69 @@
-// describe, it, expect are now globals provided by manual-harness.js
+import { describe, it, expect, beforeEach } from 'vitest'
 
 describe('WebGL 테스트', () => {
-  const setupCanvas = () => {
-      document.getElementById('webgl-canvas')?.remove();
-      const canvas = document.createElement('canvas');
-      canvas.width = 400;
-      canvas.height = 300;
-      canvas.id = 'webgl-canvas';
-      document.body.appendChild(canvas);
-      return canvas;
-  };
+  beforeEach(async ({ browser }) => {
+    await browser.evaluate(() => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 400
+      canvas.height = 300
+      canvas.id = 'webgl-canvas'
+      document.body.appendChild(canvas)
+    })
+  })
 
-  it('WebGL 컨텍스트를 생성할 수 있어야 함', async () => {
-    const canvas = setupCanvas();
-    const gl = canvas.getContext('webgl');
-    const contextInfo = {
-        supported: !!gl,
-        version: gl ? gl.getParameter(gl.VERSION) : null,
-        vendor: gl ? gl.getParameter(gl.VENDOR) : null,
-        renderer: gl ? gl.getParameter(gl.RENDERER) : null,
-    };
+  it('WebGL 컨텍스트를 생성할 수 있어야 함', async ({ browser }) => {
+    const contextInfo = await browser.evaluate(() => {
+      const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement
+      const gl = canvas.getContext('webgl')
 
-    expect(contextInfo.supported).toBe(true);
+      if (!gl) return { supported: false }
+
+      return {
+        supported: true,
+        version: gl.getParameter(gl.VERSION),
+        vendor: gl.getParameter(gl.VENDOR),
+        renderer: gl.getParameter(gl.RENDERER)
+      }
+    })
+
+    expect(contextInfo.supported).toBe(true)
 
     if (contextInfo.supported) {
-      console.log('WebGL 정보:', contextInfo);
+      console.log('WebGL 정보:', contextInfo)
     }
-    // cleanup
-    canvas.remove();
-  });
+  })
 
-  it('기본 셰이더를 컴파일할 수 있어야 함', async () => {
-    const canvas = setupCanvas();
-    const gl = canvas.getContext('webgl');
-    if (!gl) {
-        throw new Error('WebGL not supported');
-    }
+  it('기본 셰이더를 컴파일할 수 있어야 함', async ({ browser }) => {
+    const shaderResult = await browser.evaluate(() => {
+      const canvas = document.getElementById('webgl-canvas') as HTMLCanvasElement
+      const gl = canvas.getContext('webgl')
 
-    const vertexShaderSource = `
+      if (!gl) return { success: false, error: 'WebGL not supported' }
+
+      // 간단한 버텍스 셰이더
+      const vertexShaderSource = `
         attribute vec4 position;
         void main() {
           gl_Position = position;
         }
-    `;
+      `
 
-    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    if (!vertexShader) throw new Error('Failed to create shader');
+      const vertexShader = gl.createShader(gl.VERTEX_SHADER)
+      if (!vertexShader) return { success: false, error: 'Failed to create shader' }
 
-    gl.shaderSource(vertexShader, vertexShaderSource);
-    gl.compileShader(vertexShader);
+      gl.shaderSource(vertexShader, vertexShaderSource)
+      gl.compileShader(vertexShader)
 
-    const success = gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS);
-    const log = gl.getShaderInfoLog(vertexShader);
+      const success = gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)
+      const log = gl.getShaderInfoLog(vertexShader)
 
-    expect(success).toBe(true);
-    if (!success) {
-        console.error('셰이더 컴파일 오류:', log);
+      return { success, error: success ? null : log }
+    })
+
+    expect(shaderResult.success).toBe(true)
+
+    if (!shaderResult.success) {
+      console.error('셰이더 컴파일 오류:', shaderResult.error)
     }
-    // cleanup
-    canvas.remove();
-  });
-});
+  })
+})
