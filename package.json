@@ -6,9 +6,9 @@
   "scripts": {
     "test": "vitest",
     "dev": "vite dev --host",
-    "test:browser": "start-server-and-test dev http://localhost:5173 'xvfb-run vitest --config vitest.config.ts'",
-    "test:browser:chrome": "start-server-and-test dev http://localhost:5173 'BROWSER=chrome xvfb-run vitest --config vitest.config.ts'",
-    "test:browser:firefox": "start-server-and-test dev http://localhost:5173 'BROWSER=firefox xvfb-run vitest --config vitest.config.ts'",
+    "test:browser": "start-server-and-test dev tcp:5173 'xvfb-run vitest --config vitest.config.ts'",
+    "test:browser:chrome": "start-server-and-test dev tcp:5173 'BROWSER=chrome xvfb-run vitest --config vitest.config.ts'",
+    "test:browser:firefox": "start-server-and-test dev tcp:5173 'BROWSER=firefox xvfb-run vitest --config vitest.config.ts'",
     "test:watch": "vitest --watch"
   },
   "keywords": [],
