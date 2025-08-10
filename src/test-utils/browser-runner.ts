@@ -24,16 +24,17 @@ export default class BrowserTestRunner extends VitestTestRunner implements Vites
 
   async onBeforeCollect(paths: string[]) {
     console.log(`Starting test collection for ${paths.length} files`)
+    // Defer initialization to onCollected to give Vite server time to start
+  }
+
+  async onCollected(files: File[]) {
+    console.log(`Collected ${files.length} test files`)
     try {
       await this.executor.initialize()
     } catch (error) {
       console.error('Failed to initialize browser executor:', error)
       throw error
     }
-  }
-
-  async onCollected(files: File[]) {
-    console.log(`Collected ${files.length} test files`)
     await this.executor.prepareTestFiles(files)
   }
 
