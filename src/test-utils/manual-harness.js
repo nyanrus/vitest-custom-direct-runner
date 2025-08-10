@@ -3,16 +3,16 @@ console.log('[Manual Harness] Loaded. Defining describe(), it(), and expect().')
 const testResults = [];
 let currentSuite = '';
 
-// Check if the Vite client is available
-if (!window.__VITE_CLIENT__) {
+// Check if HMR is available
+if (!import.meta.hot) {
   console.error(
-    '[Manual Harness] Vite client not found. Make sure you are running in a Vite dev server environment.'
+    '[Manual Harness] Vite HMR client not found. Make sure you are running in a Vite dev server environment.'
   );
 }
 
 function reportResult(result) {
-  if (window.__VITE_CLIENT__) {
-    window.__VITE_CLIENT__.send('manual-test:result', result);
+  if (import.meta.hot) {
+    import.meta.hot.send('manual-test:result', result);
   }
   // Also log to the browser console for immediate feedback
   if (result.pass) {
