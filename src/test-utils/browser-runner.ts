@@ -18,17 +18,17 @@ export default class BrowserTestRunner extends VitestTestRunner implements Vites
   constructor(config: VitestRunnerConfig) {
     super(config)
     this.config = config
-    const origin = sharedState.viteServerUrl
-    if (!origin) {
-      throw new Error('Vite server URL was not set in shared state. This is a bug in the runner setup.');
-    }
-    this.executor = new BrowserExecutor(config, origin)
+    this.executor = new BrowserExecutor(config)
   }
 
   async onBeforeCollect(paths: string[]) {
     console.log(`Starting test collection for ${paths.length} files`)
+    const origin = sharedState.viteServerUrl
+    if (!origin) {
+      throw new Error('Vite server URL was not set in shared state by the time of collection. This is a bug in the runner setup.');
+    }
     try {
-      await this.executor.initialize()
+      await this.executor.initialize(origin)
     } catch (error) {
       console.error('Failed to initialize browser executor:', error)
       throw error

@@ -8,13 +8,12 @@ export class BrowserExecutor {
   private initializedBrowsers: string[] = []
   private currentBrowser = 'chrome'
 
-  private viteServerUrl: string;
+  private viteServerUrl: string | undefined;
 
-  constructor(private config: any, viteServerUrl: string) {
+  constructor(private config: any) {}
+
+  async initialize(viteServerUrl: string) {
     this.viteServerUrl = viteServerUrl;
-  }
-
-  async initialize() {
     const allBrowserConfigs = [
       { name: 'chrome' },
       { name: 'firefox' }
