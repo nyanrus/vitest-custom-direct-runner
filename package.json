@@ -18,5 +18,10 @@
     "playwright": "^1.40.0",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite": "^5.0.0"
+    }
   }
 }

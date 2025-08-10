@@ -1,5 +1,5 @@
-import { ModuleRunner, ESModulesEvaluator } from 'vite/dist/node/module-runner.js'
-import type { ModuleRunnerTransport } from 'vite/dist/node/module-runner.js'
+import { ModuleRunner, ESModulesEvaluator } from 'vite/module-runner'
+import type { ModuleRunnerTransport } from 'vite/module-runner'
 import type { BrowserContext, Page } from 'playwright'
 import { browserManagerSingleton } from './browser-manager.js'
 
