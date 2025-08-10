@@ -6,8 +6,8 @@
   "scripts": {
     "test": "vitest",
     "dev": "vite dev --host",
-    "test:browser": "start-server-and-test dev http://localhost:5173 'vitest --config vitest.config.ts'",
-    "test:browser:chrome": "start-server-and-test dev http://localhost:5173 'BROWSER=chrome vitest --config vitest.config.ts'",
+    "test:browser": "start-server-and-test dev tcp:5173 'vitest --config vitest.config.ts'",
+    "test:browser:chrome": "start-server-and-test dev tcp:5173 'BROWSER=chrome vitest --config vitest.config.ts'",
     "test:watch": "vitest --watch"
   },
   "keywords": [],

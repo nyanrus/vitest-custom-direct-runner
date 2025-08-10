@@ -5,10 +5,6 @@ import puppeteer, {
 } from 'puppeteer'
 import type { HotPayload } from 'vite'
 
-// Puppeteer doesn't have the same named launchers as Playwright.
-// It primarily works with Chromium, but can be configured for Firefox.
-// For simplicity, I will only support Chromium for now, as the user's main goal is to get it working.
-
 class BrowserManagerSingleton {
   private browsers = new Map<string, Browser>()
   private contexts = new Map<string, BrowserContext>()
@@ -19,12 +15,10 @@ class BrowserManagerSingleton {
       return this.browsers.get(browserName)!
     }
 
-    // NOTE: This now only supports chromium-based browsers.
-    // The original spec mentioned chrome and firefox. This is a deviation.
     const browser = await puppeteer.launch({
       headless: true,
       devtools: false,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] // Common args for CI
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     })
     this.browsers.set(browserName, browser);
     return browser
@@ -37,7 +31,7 @@ class BrowserManagerSingleton {
 
     const context = await this.getContext(browserName);
     const page = await context.newPage()
-    await page.goto(viteServerUrl);
+    await page.goto(viteServerUrl, { waitUntil: 'networkidle0' });
     this.pages.set(browserName, page)
     return page
   }
@@ -57,7 +51,7 @@ class BrowserManagerSingleton {
     const page = await this.getPage(browserName, viteServerUrl)
     await page.evaluate((p) => {
       window.dispatchEvent(new MessageEvent('message', { data: p }))
-    }, payload as any) // Puppeteer's evaluate has stricter serializable type
+    }, payload as any)
   }
 
   async invokeModule(browserName: string, payload: any, viteServerUrl: string): Promise<any> {

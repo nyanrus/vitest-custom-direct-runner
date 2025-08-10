@@ -9,7 +9,6 @@ jobs:
 
     strategy:
       matrix:
-        # Only testing on chrome now, as puppeteer support for firefox is experimental
         browser: [chrome]
 
     steps:
@@ -31,7 +30,6 @@ jobs:
         run: pnpm install
 
       - name: 브라우저 테스트 실행
-        # Using xvfb-run to provide a virtual display for the browser
         run: xvfb-run pnpm run test:browser
         env:
           CI: true
