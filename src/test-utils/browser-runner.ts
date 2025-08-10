@@ -9,7 +9,7 @@ import type {
 import { VitestTestRunner } from 'vitest/runners'
 import { BrowserExecutor } from './browser-executor.js'
 
-const VITE_SERVER_URL = 'http://localhost:5173'
+const VITE_SERVER_URL = 'http://127.0.0.1:5173'
 
 export default class BrowserTestRunner extends VitestTestRunner implements VitestRunner {
   public config: VitestRunnerConfig

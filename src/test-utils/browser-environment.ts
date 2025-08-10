@@ -1,7 +1,7 @@
 import { DevEnvironment, type DevEnvironmentContext, type ResolvedConfig } from 'vite'
 import { BrowserCommunicationChannel } from './browser-communication.js'
 
-const VITE_SERVER_URL = 'http://localhost:5173'
+const VITE_SERVER_URL = 'http://127.0.0.1:5173'
 
 export function createBrowserDevEnvironment(
   name: string,
