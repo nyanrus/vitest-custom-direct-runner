@@ -1,0 +1,22 @@
+{
+  "name": "vitest-custom-direct-runner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest",
+    "test:browser": "vitest --config vitest.config.ts",
+    "test:browser:chrome": "BROWSER=chrome vitest --config vitest.config.ts",
+    "test:browser:firefox": "BROWSER=firefox vitest --config vitest.config.ts",
+    "test:watch": "vitest --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vitest": "4.0.0-beta.7",
+    "playwright": "^1.40.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
