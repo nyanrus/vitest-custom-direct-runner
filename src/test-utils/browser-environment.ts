@@ -11,6 +11,15 @@ export function createBrowserDevEnvironment(
 ) {
   const communicationChannel = new BrowserCommunicationChannel(options.browser, VITE_SERVER_URL)
 
+  communicationChannel.on('manual-test:result', (result) => {
+    if (result.pass) {
+      console.log(`✓ ${result.name}`);
+    } else {
+      console.error(`✗ ${result.name}`);
+      console.error(`  Error: ${result.error}`);
+    }
+  });
+
   const browserEnvironment = new DevEnvironment(name, config, {
     options: {
       resolve: {
