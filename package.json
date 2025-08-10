@@ -1,0 +1,24 @@
+{
+  "name": "vitest-custom-direct-runner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest",
+    "dev": "vite dev --host",
+    "test:browser": "start-server-and-test dev tcp:5173 'vitest --config vitest.config.ts'",
+    "test:browser:chrome": "start-server-and-test dev tcp:5173 'BROWSER=chrome vitest --config vitest.config.ts'",
+    "test:watch": "vitest --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "start-server-and-test": "^2.0.4",
+    "vitest": "4.0.0-beta.7",
+    "vite": "7.1.1",
+    "puppeteer": "^22.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

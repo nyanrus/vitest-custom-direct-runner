@@ -1,0 +1,45 @@
+# .github/workflows/browser-tests.yml
+name: 브라우저 테스트
+
+on: [push, pull_request]
+
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        browser: [chrome]
+
+    steps:
+      - name: 체크아웃
+        uses: actions/checkout@v4
+
+      - name: pnpm 설치
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: 의존성 설치
+        run: pnpm install
+
+      - name: 브라우저 테스트 실행
+        run: xvfb-run pnpm run test:browser
+        env:
+          CI: true
+          BROWSER: ${{ matrix.browser }}
+
+      - name: 테스트 결과 업로드
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.browser }}
+          path: |
+            test-results/
+            screenshots/
