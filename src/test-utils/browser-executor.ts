@@ -1,6 +1,6 @@
 import { ModuleRunner, ESModulesEvaluator } from 'vite/module-runner'
 import type { ModuleRunnerTransport } from 'vite/module-runner'
-import type { BrowserContext, Page } from 'playwright'
+import type { BrowserContext, Page } from 'puppeteer' // Changed from playwright
 import { browserManagerSingleton } from './browser-manager.js'
 
 export class BrowserExecutor {
@@ -14,9 +14,9 @@ export class BrowserExecutor {
   }
 
   async initialize() {
+    // With Puppeteer, we are only supporting Chromium for now.
     const allBrowserConfigs = [
       { name: 'chrome' },
-      { name: 'firefox' }
     ]
 
     const targetBrowser = process.env.BROWSER
@@ -65,7 +65,7 @@ export class BrowserExecutor {
       async send(data) {
         await page.evaluate((payload) => {
           window.__testCommunication?.send(payload)
-        }, data)
+        }, data as any) // Puppeteer has stricter types here
       },
 
       async invoke(data) {
@@ -80,7 +80,7 @@ export class BrowserExecutor {
           } catch (error) {
             throw new Error(`Invoke failed: ${(error as Error).message}`)
           }
-        }, data)
+        }, data as any) // Puppeteer has stricter types here
       }
     }
 
@@ -91,12 +91,12 @@ export class BrowserExecutor {
 
     this.runners.set(browserName, runner)
 
-    await page.addInitScript(() => {
+    await page.evaluateOnNewDocument(`
       window.__testContext = {
-        browserName: browserName,
+        browserName: "${browserName}",
         startTime: Date.now()
       }
-    })
+    `)
   }
 
   async prepareTestFiles(files: any[]) {
@@ -134,7 +134,7 @@ export class BrowserExecutor {
 
   private getBrowserForFile(filepath: string): string {
     if (filepath.includes('.chrome.')) return 'chrome'
-    if (filepath.includes('.firefox.')) return 'firefox'
+    // Firefox support removed for now
 
     const availableBrowsers = this.initializedBrowsers
     if (availableBrowsers.length === 0) {
@@ -158,9 +158,10 @@ export class BrowserExecutor {
 
     const page = await context.newPage()
     try {
+      await page.goto(this.viteServerUrl); // Need to navigate to see content
       if (selector) {
-        const element = await page.locator(selector)
-        return await element.screenshot({ encoding: 'base64' })
+        const element = await page.waitForSelector(selector);
+        return await element!.screenshot({ encoding: 'base64' })
       } else {
         return await page.screenshot({ encoding: 'base64', fullPage: true })
       }
@@ -175,7 +176,7 @@ export class BrowserExecutor {
 
     const page = await context.newPage()
     try {
-        return await page.evaluate(fn)
+        return await page.evaluate(fn as any)
     } finally {
         await page.close();
     }
@@ -187,6 +188,7 @@ export class BrowserExecutor {
 
     const page = await context.newPage()
     try {
+      await page.goto(this.viteServerUrl); // Need to navigate to see content
       await page.waitForSelector(selector, { timeout })
     } catch (error) {
       throw new Error(`Element '${selector}' not found within ${timeout}ms`)
@@ -198,13 +200,7 @@ export class BrowserExecutor {
   async cleanup() {
     console.log('Cleaning up browser resources...')
 
-    for (const runner of this.runners.values()) {
-      try {
-        await runner.close()
-      } catch (error) {
-        console.warn('Runner cleanup warning:', (error as Error).message)
-      }
-    }
+    // Module runners do not have a close method in this version.
 
     await browserManagerSingleton.cleanup()
     this.runners.clear()

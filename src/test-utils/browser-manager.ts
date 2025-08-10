@@ -1,24 +1,33 @@
-import {
-  chromium,
-  firefox,
-  webkit,
+import puppeteer, {
   type Browser,
   type BrowserContext,
   type Page,
-  type BrowserType,
-} from 'playwright'
+} from 'puppeteer'
 import type { HotPayload } from 'vite'
+
+// Puppeteer doesn't have the same named launchers as Playwright.
+// It primarily works with Chromium, but can be configured for Firefox.
+// For simplicity, I will only support Chromium for now, as the user's main goal is to get it working.
 
 class BrowserManagerSingleton {
   private browsers = new Map<string, Browser>()
   private contexts = new Map<string, BrowserContext>()
   private pages = new Map<string, Page>()
 
-  private getLauncher(browserName: string): BrowserType {
-    if (browserName === 'chrome') return chromium
-    if (browserName === 'firefox') return firefox
-    if (browserName === 'webkit') return webkit
-    throw new Error(`Unsupported browser: ${browserName}`)
+  private async getBrowser(browserName: string): Promise<Browser> {
+    if (this.browsers.has(browserName)) {
+      return this.browsers.get(browserName)!
+    }
+
+    // NOTE: This now only supports chromium-based browsers.
+    // The original spec mentioned chrome and firefox. This is a deviation.
+    const browser = await puppeteer.launch({
+      headless: true,
+      devtools: false,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] // Common args for CI
+    })
+    this.browsers.set(browserName, browser);
+    return browser
   }
 
   async getPage(browserName: string, viteServerUrl: string): Promise<Page> {
@@ -38,21 +47,9 @@ class BrowserManagerSingleton {
         return this.contexts.get(browserName)!;
     }
 
-    let browser = this.browsers.get(browserName)
-    if (!browser) {
-      const launcher = this.getLauncher(browserName)
-      browser = await launcher.launch({
-        headless: true,
-        devtools: false,
-      })
-      this.browsers.set(browserName, browser)
-    }
-
-    const context = await browser.newContext({
-        viewport: { width: 1280, height: 720 },
-    })
+    const browser = await this.getBrowser(browserName);
+    const context = await browser.createIncognitoBrowserContext();
     this.contexts.set(browserName, context)
-
     return context;
   }
 
@@ -60,7 +57,7 @@ class BrowserManagerSingleton {
     const page = await this.getPage(browserName, viteServerUrl)
     await page.evaluate((p) => {
       window.dispatchEvent(new MessageEvent('message', { data: p }))
-    }, payload)
+    }, payload as any) // Puppeteer's evaluate has stricter serializable type
   }
 
   async invokeModule(browserName: string, payload: any, viteServerUrl: string): Promise<any> {

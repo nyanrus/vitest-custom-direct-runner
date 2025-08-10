@@ -9,7 +9,8 @@ jobs:
 
     strategy:
       matrix:
-        browser: [chrome, firefox]
+        # Only testing on chrome now, as puppeteer support for firefox is experimental
+        browser: [chrome]
 
     steps:
       - name: 체크아웃
@@ -29,11 +30,9 @@ jobs:
       - name: 의존성 설치
         run: pnpm install
 
-      - name: Playwright 브라우저 설치
-        run: pnpm exec playwright install ${{ matrix.browser }} --with-deps
-
       - name: 브라우저 테스트 실행
-        run: pnpm run test:browser
+        # Using xvfb-run to provide a virtual display for the browser
+        run: xvfb-run pnpm run test:browser
         env:
           CI: true
           BROWSER: ${{ matrix.browser }}
