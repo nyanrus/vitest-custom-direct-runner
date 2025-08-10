@@ -5,30 +5,38 @@ import { browserManagerSingleton } from './browser-manager.js'
 
 export class BrowserExecutor {
   private runners = new Map<string, ModuleRunner>()
+  private initializedBrowsers: string[] = []
   private currentBrowser = 'chrome'
 
   constructor(private config: any) {}
 
   async initialize() {
-    const browserConfigs = [
+    const allBrowserConfigs = [
       { name: 'chrome' },
       { name: 'firefox' }
     ]
 
-    for (const { name } of browserConfigs) {
+    const targetBrowser = process.env.BROWSER
+    const browserConfigsToLaunch = targetBrowser
+      ? allBrowserConfigs.filter(b => b.name === targetBrowser)
+      : allBrowserConfigs;
+
+    for (const { name } of browserConfigsToLaunch) {
       try {
         const context = await browserManagerSingleton.getContext(name)
         await this.setupModuleRunner(name, context)
+        this.initializedBrowsers.push(name)
         console.log(`Browser ${name} initialized successfully`)
       } catch (error) {
-        console.warn(`Failed to initialize ${name}: ${error.message}`)
-        // 해당 브라우저는 스킵하고 계속 진행
+        console.warn(`Failed to initialize ${name}: ${(error as Error).message}`)
       }
     }
 
-    // This check is problematic now since we don't know if any browser succeeded.
-    // I'll assume the manager handles this. The original check was on `this.browsers.size`.
-    // I will remove the check for now.
+    if (this.initializedBrowsers.length === 0) {
+      throw new Error('No browsers could be initialized')
+    }
+
+    this.currentBrowser = this.initializedBrowsers[0];
   }
 
   private async setupModuleRunner(browserName: string, context: BrowserContext) {
@@ -45,8 +53,6 @@ export class BrowserExecutor {
             handlers: {},
             send: (data) => {
               // This needs to call back to the node process.
-              // The original code was also missing this implementation detail.
-              // Let's assume there is a global function exposed by playwright.
               window.__vite_rpc_send(data)
             }
           }
@@ -72,7 +78,7 @@ export class BrowserExecutor {
             })
             return response.json()
           } catch (error) {
-            throw new Error(`Invoke failed: ${error.message}`)
+            throw new Error(`Invoke failed: ${(error as Error).message}`)
           }
         }, data)
       }
@@ -95,11 +101,7 @@ export class BrowserExecutor {
   }
 
   async prepareTestFiles(files: any[]) {
-    // This logic distributes files between available browsers.
-    // I need to know the available browsers from the manager.
-    // The manager doesn't expose this directly.
-    // I'll stick to the original implementation which just used the hardcoded list.
-    const availableBrowsers = ['chrome', 'firefox']
+    const availableBrowsers = this.initializedBrowsers
 
     const distribution = new Map<string, any[]>()
 
@@ -135,7 +137,11 @@ export class BrowserExecutor {
     if (filepath.includes('.chrome.')) return 'chrome'
     if (filepath.includes('.firefox.')) return 'firefox'
 
-    const availableBrowsers = ['chrome', 'firefox']
+    const availableBrowsers = this.initializedBrowsers
+    if (availableBrowsers.length === 0) {
+      throw new Error('No browsers available')
+    }
+
     return availableBrowsers[0]
   }
 
@@ -197,7 +203,7 @@ export class BrowserExecutor {
       try {
         await runner.close()
       } catch (error) {
-        console.warn('Runner cleanup warning:', error.message)
+        console.warn('Runner cleanup warning:', (error as Error).message)
       }
     }
 
